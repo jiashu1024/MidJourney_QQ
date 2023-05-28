@@ -67,6 +67,8 @@ public class Properties {
 
     @Data
     public static class QqConfig{
+        private String loginType;
+        private String protocol;
         private String account;
         private String password;
     }

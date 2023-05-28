@@ -29,34 +29,45 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
     private final FriendMessageEventProcessor friendMessageEventProcessor;
 
     private final GroupMessageEventProcessor groupMessageEventProcessor;
+    private final DiscordBot discordBot;
+
+
 
     public static boolean ok = false;
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
 //        FixProtocolVersion.update();
-        String account = properties.getQq().getAccount();
-        String password = properties.getQq().getPassword();
+        Properties.QqConfig qq = properties.getQq();
+        String account = qq.getAccount();
+        String password =qq.getPassword();
+        String loginType = qq.getLoginType();
+        String protocolStr = qq.getProtocol();
 
+        BotAuthorization botAuthorization;
+        if (loginType.equals("password")) {
+            botAuthorization = BotAuthorization.byPassword(password);
+        } else {
+            botAuthorization = BotAuthorization.byQRCode();
+        }
+        String cacheDir = "cache/"+account + "/" + loginType + "/" + protocolStr + "/";
+        File cache = new File(cacheDir);
+        if (!cache.exists()) {
+            System.out.println("创建cache文件夹成功:" + cache.mkdirs());
+        }
 
-        Bot bot = BotFactory.INSTANCE.newBot(new Long(account), BotAuthorization.byQRCode(), new BotConfiguration() {{
-            setProtocol(MiraiProtocol.ANDROID_WATCH);
+        log.info("登录方式为: " + botAuthorization.toString());
+        log.info("登录协议为: " + protocolStr);
+
+        Bot bot = BotFactory.INSTANCE.newBot(new Long(account),botAuthorization, new BotConfiguration() {{
+            setProtocol(BotConfiguration.MiraiProtocol.valueOf(protocolStr));
             String proto = getProtocol().name();
             this.disableContactCache();
             this.noNetworkLog();
-            setCacheDir(new File("cache"));
-            String deviceInfo = "cache/" + account + "-"+ proto + "device.json";
+            setCacheDir(cache);
+            String deviceInfo = cacheDir + proto + "device.json";
             fileBasedDeviceInfo(deviceInfo);
         }});
-//        Bot bot = BotFactory.INSTANCE.newBot(new Long(account), password, new BotConfiguration() {{
-//            setProtocol(MiraiProtocol.MACOS);
-//            String proto = getProtocol().name();
-//            this.disableContactCache();
-//            this.noNetworkLog();
-//            setCacheDir(new File("cache"));
-//            String deviceInfo = "cache/" + account + "-"+ proto + "device.json";
-//            fileBasedDeviceInfo(deviceInfo);
-//        }});
 
         GlobalEventChannel.INSTANCE.subscribeAlways(Event.class, qqEvent -> {
             if (qqEvent instanceof GroupMessageEvent) {
@@ -68,22 +79,25 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         });
         try {
             bot.login();
+            discordBot.login();
             ok = true;
         } catch (Exception e) {
             log.error("bot login error", e);
-            //删除当前目录下的cache文件夹
-            File file = new File("cache");
-            if (file.exists()) {
-                if (file.isDirectory()) {
-                    File[] files = file.listFiles();
-                    for (File f : files) {
-                        System.out.println("删除文件:" + f.getName());
-                        f.delete();
-                    }
+            deleteFolder(cache);
+        }
+    }
+
+    public static void deleteFolder(File folder) {
+        if (folder.isDirectory()) {
+            File[] files = folder.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    deleteFolder(file); // 递归删除子文件或子文件夹
                 }
             }
         }
 
-
+        // 删除空文件夹或文件
+        folder.delete();
     }
 }

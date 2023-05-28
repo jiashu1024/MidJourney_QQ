@@ -104,11 +104,10 @@ public class SchedulingTask {
     @Scheduled(fixedRate = 1000 * 40)
     public void queryRecentJobs() {
         if (!QQBot.ok) {
-            log.info("机器人未登录，跳过查询recent job");
+            //log.info("机器人未登录，跳过查询recent job");
             return;
         }
         try {
-            log.info("开始查询recent job");
             request();
         } catch (Exception e) {
             log.error("查询recent job失败", e);

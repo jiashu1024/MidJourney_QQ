@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: zhangsan  # 要设置的 root 用户密码
+      MYSQL_DATABASE: midjourney
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d  # 挂载数据库初始化脚本
+      - mysql-data:/var/lib/mysql          # 持久化存储数据库文件
+    ports:
+      - "3306:3306"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./application.yaml:/usr/src/app/src/main/resources/application.yaml
+      - ./pic:/tmp
+      - ./cache:/usr/src/app/cache
+    depends_on:
+      - db
+volumes:
+  mysql-data:
+

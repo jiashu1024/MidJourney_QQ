@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DiscordBot  implements ApplicationListener<ApplicationStartedEvent> {
+public class DiscordBot {
 
     private final Properties properties;
 
@@ -21,8 +21,7 @@ public class DiscordBot  implements ApplicationListener<ApplicationStartedEvent>
 
     private final TaskPool taskPool;
 
-    @Override
-    public void onApplicationEvent(@NotNull ApplicationStartedEvent event) {
+    public void login() {
         //登录discord机器人
         DefaultShardManagerBuilder builder = DefaultShardManagerBuilder.createDefault(this.properties.getMj().getBotToken(),
                 GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT);

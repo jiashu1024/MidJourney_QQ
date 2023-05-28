@@ -32,7 +32,7 @@ spring:
   datasource:
     url: jdbc:mysql://db:3306/midjourney?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&socketTimeout=60000&connectTimeout=30000&serverTimezone=Asia/Shanghai
     username: root
-    password: zhangsan
+    password: zhangsan  #和docker compose里mysql密码保持一致
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 3
