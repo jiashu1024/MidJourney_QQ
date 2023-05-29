@@ -2,6 +2,7 @@
 2. 往自己频道添加discord机器人,拿到discord的usertoken，频道ID channel id，服务器ID guild id[教程](https://discord.com/developers/applications)
 3. 阿里云开通机器翻译[教程](aliyun.md)获取AccessKey ID和AccessKey Secret
 4. 登录midjourney获取user id和user token[教程](midjourney.md)
+5. 企业微信创建机器人获取webhook[教程](https://developer.qiniu.com/console/kb/10490/receptionmanagement-wechat?category=kb)
 
 ------
 
