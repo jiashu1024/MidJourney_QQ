@@ -16,6 +16,8 @@ import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.internal.network.auth.ProducerFailureException;
 import net.mamoe.mirai.network.InconsistentBotIdException;
 import net.mamoe.mirai.utils.BotConfiguration;
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
@@ -35,6 +37,9 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
     private final DiscordBot discordBot;
 
     private final QqLoginSolver qqLoginSolver;
+
+    private final ApplicationContext context;
+;
 
 
     public static boolean ok = false;
@@ -91,6 +96,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         } catch (Exception e) {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
+            SpringApplication.exit(context, () -> 0);
         } finally {
             deleteFolder(cache);
         }
