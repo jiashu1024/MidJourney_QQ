@@ -1,5 +1,7 @@
 package com.zjs.mj.util;
 
+import cn.hutool.core.io.StreamProgress;
+import cn.hutool.core.lang.Console;
 import cn.hutool.http.HttpUtil;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,7 +25,22 @@ public class FileUtil {
         int count = 0;
         while (count++ < MAX_RETRY) {
             try {
-                l = HttpUtil.downloadFile(url, tempFile);
+                HttpUtil.downloadFile(url, tempFile, new StreamProgress(){
+                    @Override
+                    public void start() {
+                       log.info("开始下载。。。。");
+                    }
+
+                    @Override
+                    public void progress(long total, long progressSize) {
+                        log.info("已下载：{}", cn.hutool.core.io.FileUtil.readableFileSize(progressSize));
+                    }
+
+                    @Override
+                    public void finish() {
+                        log.info("下载完成！");
+                    }
+                });
             } catch (Exception e) {
                 log.error("Download file failed,begin retry {}", count+1);
             }

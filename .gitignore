@@ -13,8 +13,9 @@
 .mvn/
 cache/
 target
-src/test
+src/test/
 .DS_Store
+application.bak
 
 # Package Files #
 *.jar

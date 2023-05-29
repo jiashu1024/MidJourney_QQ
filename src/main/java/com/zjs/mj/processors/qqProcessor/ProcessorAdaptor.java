@@ -5,12 +5,10 @@ import com.zjs.mj.constant.UserRole;
 import com.zjs.mj.entity.AuthenticationResult;
 import com.zjs.mj.entity.SubmitResult;
 import com.zjs.mj.entity.Task;
-import com.zjs.mj.entity.dto.DefaultRoleCount;
 import com.zjs.mj.entity.dto.User;
 import com.zjs.mj.enums.Action;
 import com.zjs.mj.enums.ImagineMode;
 import com.zjs.mj.enums.TaskStatus;
-import com.zjs.mj.mapper.DefaultRoleCountMapper;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.mapper.UserMapper;
 import com.zjs.mj.util.DateTimeUtil;
@@ -19,11 +17,11 @@ import com.zjs.mj.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.event.Event;
-import net.mamoe.mirai.event.events.FriendMessageEvent;
-import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.MessageEvent;
-import net.mamoe.mirai.message.data.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import net.mamoe.mirai.message.data.MessageChain;
+import net.mamoe.mirai.message.data.MessageChainBuilder;
+import net.mamoe.mirai.message.data.MessageSource;
+import net.mamoe.mirai.message.data.QuoteReply;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -80,7 +78,7 @@ public class ProcessorAdaptor implements ChatProcessor {
     }
 
     protected boolean expire(Event event) {
-        //如果这个事件的时间比当前时间早10s以上，就不处理
+        //如果这个事件的时间比当前时间早30s以上，就不处理
         //(说明这个消息是机器人启动之前发的)
         MessageEvent messageEvent = (MessageEvent) event;
         int time = messageEvent.getTime();

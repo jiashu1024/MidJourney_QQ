@@ -26,10 +26,10 @@ COPY pom.xml .
 COPY application.yaml .
 
 # 移动application.yaml文件
-RUN mv application.yaml src/main/resources/
+#RUN mv application.yaml src/main/resources/
 
 # 使用Maven打包跳过测试
 RUN mvn package -DskipTests
 
 # 运行jar文件，这里的my-app-1.0.jar需要换成你真实的jar文件名
-CMD ["java", "-jar", "target/mj-QQ-mirai-1.0.0.jar"]
+CMD ["java", "-jar", "target/mj-QQ-mirai-1.0.0.jar", "--spring.config.location=/usr/src/app/application.yaml"]

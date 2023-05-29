@@ -71,11 +71,9 @@
         </dependency>
 
 <!--        <dependency>-->
-<!--            <groupId>xyz.cssxsh.mirai.tool</groupId>-->
-<!--            <artifactId>arcsoft-sdk-face</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>system</scope>-->
-<!--            <systemPath>${project.basedir}/src/main/resources/lib/fix-protocol-version-1.5.0.mirai2.jar</systemPath>-->
+<!--            <groupId>net.guerlab.cloud.dingtalk</groupId>-->
+<!--            <artifactId>guerlab-cloud-dingtalk-core</artifactId>-->
+<!--            <version>2022.1.0</version>-->
 <!--        </dependency>-->
 
 

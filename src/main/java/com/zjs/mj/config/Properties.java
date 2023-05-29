@@ -11,6 +11,7 @@ public class Properties {
     private final MjConfig mj = new MjConfig();
     private final AliyunConfig aliyun = new AliyunConfig();
     private final QqConfig qq = new QqConfig();
+    private final WxConfig wx = new WxConfig();
 
     @Data
     public static class MjConfig {
@@ -67,10 +68,18 @@ public class Properties {
 
     @Data
     public static class QqConfig{
+        private String admin;
         private String loginType;
         private String protocol;
         private String account;
         private String password;
+    }
+
+
+
+    @Data
+    public static class WxConfig{
+        private String webHook;
     }
 
 

@@ -9,30 +9,34 @@ logging:
 
 config:
   mj:
-    plan: 4  #可选值1,2,3,4 分别对应(免费订阅，$10,$30,$60)用于调整同时提交的任务数量
-    guild-id: 123456 #服务器id
-    channel-id: 123456 #频道id
-    user-token: 123456 #discord的用户token
-    bot-token: 123456 #机器人token
-    user-id: 123456 #midjourney用户id
-    token: 123456 #midjourney用户token
+    plan: 4  #可选值1,2,3,4 分别对应(免费订阅，$10,$30,$60)
+    guild-id:     #discord 服务器id
+    channel-id:    #discord 频道id
+    user-token:  #discord 用户token
+    bot-token:   #discord 机器人token
+    user-id:     #midjourney 用户id
+    token: eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0*****  #midjourney 用户token (老长一串了)
+
   aliyun:
-    accessKeyId:
+    accessKeyId:     #阿里云accessKeyId
     accessKeySecret:
   qq:
+    admin: 1130600015   #管理员qq号(可填写你大号的qq号)
     login-type:  qrcode   #password or qrcode
     # MACOS  ANDROID_WATCH  ANDROID_PAD IPAD  ANDROID_PHONE五种协议
     #1. 登录方式选择password时五种协议都可以，推荐 ANDROID_PAD IPAD
     #2. 登录方式选择qrcode时，只能选择ANDROID_WATCH  MACOS 推荐ANDROID_WATCH
     protocol: ANDROID_WATCH
     account: 123456
-    password: xxx  #当登录方式为qrcode时，该项可不用设置
+    password: 123456  #当登录方式为qrcode时，该项可不用设置
+  wx:
+    webhook: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=*******  #企业微信机器人webhook
 
 spring:
   datasource:
-    url: jdbc:mysql://db:3306/midjourney?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&socketTimeout=60000&connectTimeout=30000&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/midjourney?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&socketTimeout=60000&connectTimeout=30000&serverTimezone=Asia/Shanghai
     username: root
-    password: zhangsan  #和docker compose里mysql密码保持一致
+    password: zhangsan
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       minimum-idle: 3
