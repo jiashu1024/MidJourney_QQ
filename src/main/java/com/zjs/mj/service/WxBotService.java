@@ -39,7 +39,7 @@ public class WxBotService {
         text.put("content",message);
         params.put("text",text);
         String result = HttpUtil.post(url, JSONUtil.toJsonPrettyStr(params));
-        log.info("推送微信图片: {}", result);
+        log.info("推送微信消息结果: {}", result);
     }
 
     public static void sendImage(byte[] imageBytes) {
@@ -51,7 +51,7 @@ public class WxBotService {
         image.put("md5", calculateMd5(imageBytes));
         params.put("image", image);
         String result = HttpUtil.post(url, JSONUtil.toJsonPrettyStr(params));
-        log.info("推送微信消息: {}", result);
+        log.info("推送微信消息结果: {}", result);
     }
 
     private static String calculateMd5(byte[] imageBytes) {

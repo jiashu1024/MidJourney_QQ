@@ -16,7 +16,7 @@ target
 src/test/
 .DS_Store
 application.bak
-
+application.empty
 # Package Files #
 *.jar
 *.war

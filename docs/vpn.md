@@ -1,7 +1,7 @@
 项目根目录下运行
 
 ```shell
-docker-compose -f vpn.yaml up -d
+docker-compose  up -d
 
 docker ps -a #查看vpn容器是否成功启动
 docker logs -f {name}#容器名称查看日志
@@ -37,7 +37,7 @@ docker logs -f {name}#容器名称查看日志
 15. 在 **IPSec 服务器证书** 下拉菜单选择 **(来自服务器)**。
 16. 单击 **保存**。然后单击新的 VPN 连接并单击 **连接**。
 
-如果你的手机上没有**IKEv2/IPSec RSA**选项，下面要输入的信息可在vpn.yaml中环境变量找到，也可在vpn容器的输出日志中找到
+如果你的手机上没有**IKEv2/IPSec RSA**选项，下面要输入的信息可在docker-compose.yaml中环境变量找到，也可在vpn容器的输出日志中找到
 
 1. 启动 **设置** 应用程序。
 2. 单击 **网络和互联网**。或者，如果你使用 Android 7 或更早版本，在 **无线和网络** 部分单击 **更多...**。
