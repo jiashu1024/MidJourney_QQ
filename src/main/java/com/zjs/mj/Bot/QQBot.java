@@ -20,6 +20,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.stereotype.Component;
+import xyz.cssxsh.mirai.tool.FixProtocolVersion;
 
 import java.io.File;
 
@@ -45,7 +46,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
-//        FixProtocolVersion.update();
+        FixProtocolVersion.update();
         Properties.QqConfig qq = properties.getQq();
         String account = qq.getAccount();
         String password = qq.getPassword();
@@ -61,7 +62,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         String cacheDir = "cache/" + account + "/" + loginType + "/" + protocolStr + "/";
         File cache = new File(cacheDir);
         if (!cache.exists()) {
-            System.out.println("创建登录缓存文件夹cache文件夹成功:" + cache.mkdirs());
+           log.info("创建登录缓存文件夹cache文件夹成功:" + cache.mkdirs());
         }
         boolean isQrLoginType = loginType.equals("qrcode");
 
@@ -98,7 +99,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
             deleteFolder(cache);
-            SpringApplication.exit(context, () -> 0);
+            return;
         }
 
         try {

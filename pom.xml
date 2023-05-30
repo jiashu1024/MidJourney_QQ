@@ -112,6 +112,14 @@
             <artifactId>lombok</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.xyz</groupId>
+            <artifactId>cryptokit</artifactId>
+            <version>1.0</version>
+            <scope>system</scope>
+            <systemPath>${pom.basedir}/lib/fix-protocol-version-1.5.1.mirai2.jar</systemPath>
+        </dependency>
+
     </dependencies>
 
     <build>
@@ -119,6 +127,9 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                </configuration>
             </plugin>
         </plugins>
     </build>
