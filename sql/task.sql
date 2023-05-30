@@ -11,7 +11,7 @@
  Target Server Version : 50718
  File Encoding         : 65001
 
- Date: 27/05/2023 15:21:25
+ Date: 30/05/2023 18:09:52
 */
 
 SET NAMES utf8mb4;
@@ -41,7 +41,8 @@ CREATE TABLE `task` (
   `related_task_id` varchar(16) DEFAULT NULL,
   `root_task_id` varchar(16) DEFAULT NULL,
   `is_deleted` tinyint(1) DEFAULT NULL,
+  `posted` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`,`task_id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4;
 
 SET FOREIGN_KEY_CHECKS = 1;
