@@ -93,14 +93,12 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         try {
             bot.login();
             ok = true;
+            WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
         } catch (Exception e) {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
             deleteFolder(cache);
             SpringApplication.exit(context, () -> 0);
-        }
-        if (ok) {
-            WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
         }
 
         try {

@@ -26,6 +26,5 @@ public class DiscordBot {
                 GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT);
         builder.addEventListeners(this.mjMessageListener);
         builder.build();
-
     }
 }

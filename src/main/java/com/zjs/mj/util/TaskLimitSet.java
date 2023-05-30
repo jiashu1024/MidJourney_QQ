@@ -2,6 +2,7 @@ package com.zjs.mj.util;
 
 import com.zjs.mj.entity.Task;
 import com.zjs.mj.enums.TaskStatus;
+import com.zjs.mj.service.WxBotService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -55,6 +56,7 @@ public class TaskLimitSet {
         log.info("当前系统负载:{}%", percent*100);
         if (percent >= 0.4) {
             log.info("被MidJourney限流,将拒绝30s内所有的任务提交");
+            WxBotService.sendText("被MidJourney限流,将拒绝30s内所有的任务提交");
             limitTime = System.currentTimeMillis() + 1000 * 30;
             sleepTime = 8; //调大任务与任务执行之间的间隔 尽量保证不会被限流
             taskLimitSet.clear();

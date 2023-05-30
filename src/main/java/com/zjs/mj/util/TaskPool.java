@@ -58,9 +58,6 @@ public class TaskPool {
     private int limitTaskCount = 0;
     private final Semaphore  semaphore = new Semaphore(1);
 
-
-
-
     @PostConstruct
     void init() {
         int plan = properties.getMj().getPlan();
