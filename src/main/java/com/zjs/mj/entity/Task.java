@@ -138,6 +138,10 @@ public class Task {
      */
     private boolean isDeleted;
 
+    private boolean posted;
+
+
+
     public Task() {
     }
 

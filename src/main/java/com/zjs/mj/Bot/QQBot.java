@@ -4,6 +4,7 @@ import com.zjs.mj.config.Properties;
 import com.zjs.mj.processors.qqProcessor.FriendMessageEventProcessor;
 import com.zjs.mj.processors.qqProcessor.GroupMessageEventProcessor;
 import com.zjs.mj.service.WxBotService;
+import com.zjs.mj.util.TaskPool;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.Bot;
@@ -13,8 +14,6 @@ import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
-import net.mamoe.mirai.internal.network.auth.ProducerFailureException;
-import net.mamoe.mirai.network.InconsistentBotIdException;
 import net.mamoe.mirai.utils.BotConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
@@ -39,8 +38,8 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
     private final QqLoginSolver qqLoginSolver;
 
     private final ApplicationContext context;
-;
 
+    private final TaskPool taskPool;
 
     public static boolean ok = false;
 
@@ -62,11 +61,12 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         String cacheDir = "cache/" + account + "/" + loginType + "/" + protocolStr + "/";
         File cache = new File(cacheDir);
         if (!cache.exists()) {
-            System.out.println("创建cache文件夹成功:" + cache.mkdirs());
+            System.out.println("创建登录缓存文件夹cache文件夹成功:" + cache.mkdirs());
         }
+        boolean isQrLoginType = loginType.equals("qrcode");
 
         log.info("开始登录qq: " + account);
-        log.info("登录方式为: " + botAuthorization.toString());
+        log.info("登录方式为: " + botAuthorization);
         log.info("登录协议为: " + protocolStr);
 
         Bot bot = BotFactory.INSTANCE.newBot(new Long(account), botAuthorization, new BotConfiguration() {{
@@ -76,7 +76,9 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
             this.noNetworkLog();
             setCacheDir(cache);
             String deviceInfo = cacheDir + proto + "device.json";
-            setLoginSolver(qqLoginSolver);
+            if (isQrLoginType) {
+                setLoginSolver(qqLoginSolver);
+            }
             fileBasedDeviceInfo(deviceInfo);
         }});
 
@@ -90,15 +92,24 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         });
         try {
             bot.login();
-            WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
-            discordBot.login();
             ok = true;
         } catch (Exception e) {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
-            SpringApplication.exit(context, () -> 0);
-        } finally {
             deleteFolder(cache);
+            SpringApplication.exit(context, () -> 0);
+        }
+        if (ok) {
+            WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
+        }
+
+        try {
+            discordBot.login();
+            new Thread(taskPool::work).start();
+        } catch (Exception e) {
+            log.error("discord bot login error", e);
+            WxBotService.sendText("discord bot登录失败\n" + e.getCause().getMessage());
+            SpringApplication.exit(context, () -> 0);
         }
     }
 

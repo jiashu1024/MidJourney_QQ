@@ -101,13 +101,14 @@ public class SchedulingTask {
      * 定时查recent job
      * 用于恢复没有被机器人监听到的任务 (例如机器人收不到mj私发给用户的作图结果)
      */
-    @Scheduled(fixedRate = 1000 * 40)
+    @Scheduled(fixedRate = 1000 * 10)
     public void queryRecentJobs() {
         if (!QQBot.ok) {
-            //log.info("机器人未登录，跳过查询recent job");
+            log.info("机器人未登录，跳过查询recent job");
             return;
         }
         try {
+            System.out.println("查询recent job");
             request();
         } catch (Exception e) {
             log.error("查询recent job失败", e);
@@ -129,17 +130,30 @@ public class SchedulingTask {
             HttpResponse response = request.execute();
             if (response.getStatus() != 200) {
                 log.error("请求失败，状态码：{}", response.getStatus());
-
                 return;
             }
             String body = response.body();
+            System.out.println(body);
             List<RecentJob> jobs = parse(body);
             for (RecentJob job : jobs) {
                 LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<Task>();
                 queryWrapper.eq(Task::getRootTaskId, job.getTaskId())
                         .eq(Task::getAction, job.getAction())
+                        .eq(Task::isPosted,false)
                         .notIn(Task::getStatus, TaskStatus.SUCCESS, TaskStatus.FAILED);
                 Task task = taskMapper.selectOne(queryWrapper);
+
+//                if (task != null) {
+//                    task.setStatus(TaskStatus.SUCCESS);
+//                    task.setDescription("recover from recent job");
+//                    task.setMessageHash(job.getMessageHash());
+//                    task.setRequestId(job.getMessageId());
+//                    task.setImageUrl(job.getImageUrl());
+//                    task.setDeleted(true);
+//                    task.setFinishTime(LocalDateTime.now());
+//                    task.notifyUser();
+//                    taskMapper.updateById(task);
+//                }
                 if (task != null) {
                     log.info("find the task deleted, taskId:{}", task.getTaskId());
                     task.setStatus(TaskStatus.SUCCESS);

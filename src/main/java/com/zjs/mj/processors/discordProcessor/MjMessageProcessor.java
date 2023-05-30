@@ -62,6 +62,7 @@ public class MjMessageProcessor implements MessageProcessor {
         } else {
             finishTask(task, message);
         }
+        task.setPosted(true);
         task.notifyUser();
         //  notifyUser(task);
         taskMapper.updateById(task);

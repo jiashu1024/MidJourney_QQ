@@ -19,7 +19,6 @@ public class DiscordBot {
 
     private final  MjMessageListener mjMessageListener;
 
-    private final TaskPool taskPool;
 
     public void login() {
         //登录discord机器人
@@ -27,6 +26,6 @@ public class DiscordBot {
                 GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT);
         builder.addEventListeners(this.mjMessageListener);
         builder.build();
-        new Thread(taskPool::work).start();
+
     }
 }
