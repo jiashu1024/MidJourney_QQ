@@ -22,13 +22,13 @@ config:
     accessKeySecret:
   qq:
     admin: 1130600015   #管理员qq号(可填写你大号的qq号)
-    login-type:  qrcode   #password or qrcode
+    login-type:  password   #password or qrcode
     # MACOS  ANDROID_WATCH  ANDROID_PAD IPAD  ANDROID_PHONE五种协议
     #1. 登录方式选择password时五种协议都可以，推荐 ANDROID_PAD IPAD
     #2. 登录方式选择qrcode时，只能选择ANDROID_WATCH  MACOS 推荐ANDROID_WATCH
-    protocol: ANDROID_WATCH
-    account: 123456
-    password: 123456  #当登录方式为qrcode时，该项可不用设置
+    protocol: MACOS
+    account: 1852762895
+    password: ssg199678  #当登录方式为qrcode时，该项可不用设置
   wx:
     webhook: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=*******  #企业微信机器人webhook
 

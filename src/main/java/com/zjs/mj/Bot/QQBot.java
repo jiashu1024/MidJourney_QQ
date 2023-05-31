@@ -47,6 +47,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
 
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
+
         FixProtocolVersion.update();
         Properties.QqConfig qq = properties.getQq();
         String account = qq.getAccount();
