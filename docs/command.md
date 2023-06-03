@@ -16,7 +16,9 @@ normal和plus用户fast模式的余额每月1号刷新成默认值，relax模式
 
    <img src="https://tc.mustache.top/picGo/202305271901888.png" alt="image-20230527190119870" style="zoom:33%;" />
 
-   
+   垫图操作：引用回复需要垫的图，文案前以“/”开头即可触发垫图操作。引用回复的图片可以是自己发的图片也可以是机器人发的，或者群内其他人发的
+
+   <img src="https://tc.mustache.top/picGo/202306032121122.png" alt="image-20230603212107073" style="zoom:33%;" />
 
 2. **UV操作**
 

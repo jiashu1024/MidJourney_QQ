@@ -13,6 +13,7 @@ import com.zjs.mj.enums.ImagineMode;
 import com.zjs.mj.enums.TaskStatus;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.processors.qqProcessor.ChatProcessor;
+import com.zjs.mj.processors.qqProcessor.ProcessorAdaptor;
 import com.zjs.mj.service.MjService;
 import com.zjs.mj.service.UserService;
 import com.zjs.mj.util.AliTranslate;
@@ -149,7 +150,11 @@ public class Task {
         return build(RandomUtil.randomNumbers(16), action, prompt, user, chain, event, processor);
     }
 
-    public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor) {
+    public Task build(Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor,String imageUrl) {
+        return build(RandomUtil.randomNumbers(16), action, prompt, user, chain, event, processor,imageUrl);
+    }
+
+    public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor,String padImagineUrl) {
         this.taskId = taskId;
         this.action = action;
         this.prompt = prompt;
@@ -191,6 +196,7 @@ public class Task {
         if (prompt.contains("--")) {
             realPrompt = prompt.substring(0, prompt.indexOf("--"));
             param = prompt.substring(prompt.indexOf("--"));
+            param = buildCommandPara(param);
         }
 
         try {
@@ -200,9 +206,22 @@ public class Task {
             this.status = TaskStatus.FAILED;
             this.description = "翻译失败";
         }
-        this.finalPrompt = "[" + this.taskId + "]" + this.promptEn + "   " + param;
+        this.finalPrompt = "[" + this.taskId + "]  " + padImagineUrl + "  " + this.promptEn + "   " + param;
         return this;
     }
+
+    public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor) {
+        return build(taskId, action, prompt, user, chain, event, processor,"");
+    }
+
+    private String buildCommandPara(String param) {
+        if (param.contains("--iw")) {
+            param = param.replace("--iw", "--iw ");
+        }
+
+        return param;
+    }
+
 
 
     /**
@@ -216,7 +235,7 @@ public class Task {
         //翻译失败的任务不能被执行
         if (status.equals(TaskStatus.CREATED)) {
             MjRequestResult<Void> result = null;
-            if (this.action.equals(Action.IMAGINE)) {
+            if (this.action.equals(Action.IMAGINE) || this.action.equals(Action.PAD_IMAGINE)) {
                 result = service.imagine(this.finalPrompt, this.mode);
             } else if (this.action.equals(Action.UPSCALE)) {
                 result = service.upscale(this.finalPrompt, this.messageHash, this.requestId,this.isDeleted);
@@ -233,6 +252,7 @@ public class Task {
                     this.description = result.getDescription();
                 }
                 this.setResult(result);
+                notifyUser();
             }
             mapper.updateById(this);
         }
@@ -248,7 +268,7 @@ public class Task {
 
         //使用targetId+time作为sourceKey 有可能出现时间不一致
         //使用targetId + ids，不同设备上ids不一致
-        long id = source.getTargetId();
+        long id = source.getFromId();
        // int time = source.getTime()+1;
         int internalId = source.getInternalIds()[0];
         return id + "_" + internalId;
@@ -294,7 +314,7 @@ public class Task {
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(messageSource));
 
         if (status.equals(TaskStatus.SUCCESS)) {
-            if (action.equals(Action.IMAGINE)) {
+            if (action.equals(Action.IMAGINE) || action.equals(Action.PAD_IMAGINE)) {
                 sendResultNeedStorage(this, contact, builder);
             } else if (action.equals(Action.UPSCALE)) {
                 File file = null;
@@ -341,7 +361,7 @@ public class Task {
             file = FileUtil.downloadFile(task.getImageUrl());
         } catch (Exception e) {
             log.error("image download error", e);
-            builder.append("图片发送失败").build();
+            builder.append("服务器下载结果图片失败").build();
             contact.sendMessage(builder.build());
             return;
         }
@@ -349,6 +369,9 @@ public class Task {
         log.info("begin to send image to {}", contact.getId());
         MessageReceipt<Contact> receipt = Contact.sendImage(contact, file);
         log.info("send image to {} success", contact.getId());
+
+
+
         task.setSourceKey(Task.createSourceKey(receipt.getSource()));
         builder.append("图片生成成功，\n")
                 .append("引用图片回复：\n")

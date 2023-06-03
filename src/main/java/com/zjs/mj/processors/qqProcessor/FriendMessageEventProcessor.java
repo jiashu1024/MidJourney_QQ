@@ -8,6 +8,7 @@ import com.zjs.mj.enums.Action;
 import com.zjs.mj.entity.Task;
 import com.zjs.mj.enums.ImagineMode;
 import com.zjs.mj.enums.TaskStatus;
+import com.zjs.mj.mapper.ImageMessageMapper;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.mapper.UserMapper;
 import com.zjs.mj.util.TaskPool;
@@ -25,9 +26,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class FriendMessageEventProcessor extends ProcessorAdaptor {
-    public FriendMessageEventProcessor(UserUtil userUtil, UserMapper userMapper, TaskMapper taskMapper, TaskPool taskPool) {
-        super(userUtil, userMapper, taskMapper, taskPool);
+    public FriendMessageEventProcessor(UserUtil userUtil, UserMapper userMapper, TaskMapper taskMapper, TaskPool taskPool, ImageMessageMapper imageMessageMapper) {
+        super(userUtil, userMapper, taskMapper, taskPool, imageMessageMapper);
     }
+
 
 //    private final TaskPool taskPool;
 //    private final TaskMapper taskMapper;
@@ -40,9 +42,7 @@ public class FriendMessageEventProcessor extends ProcessorAdaptor {
 
     @Override
     public void process(Event event) {
-//        if (!(event instanceof FriendMessageEvent)) {
-//            return;
-//        }
+
 
         if (expire(event)) {
             return;
@@ -51,11 +51,21 @@ public class FriendMessageEventProcessor extends ProcessorAdaptor {
         MessageEvent messageEvent = (MessageEvent) event;
         long qq = messageEvent.getSender().getId();
         MessageChain chain = messageEvent.getMessage();
+
+        processStorageImageMessage(messageEvent);
+
+
+
         QuoteReply quoteReply = chain.get(QuoteReply.Key);
         User user = userUtil.getUser(String.valueOf(qq));
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(chain));
 
         if (quoteReply == null) {
+            Image image = chain.get(Image.Key);
+            if (image != null) {
+                return;
+            }
+
             MessageContent messageContent = chain.get(PlainText.Key);
             String prompt = messageContent.contentToString();
             //处理非引用回复的作图请求 私聊直接发prompt即可作图
@@ -68,7 +78,7 @@ public class FriendMessageEventProcessor extends ProcessorAdaptor {
                 return;
             }
             String prompt = messageContent.contentToString();
-            processUvRequest(chain, messageEvent, builder, quoteReply, user, event,prompt);
+            processQuoteReplyRequest(chain, messageEvent, builder, quoteReply, user, event,prompt);
         }
 
     }

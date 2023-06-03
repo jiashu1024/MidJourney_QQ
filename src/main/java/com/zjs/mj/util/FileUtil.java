@@ -33,9 +33,9 @@ public class FileUtil {
 
         // HttpUtil.downloadFile(url, tempFile);
         int count = 0;
+        final int[] download = {0};
         while (count++ < MAX_RETRY) {
             try {
-
                 long l = HttpUtil.downloadFile(url, tempFile, new StreamProgress() {
                     @Override
                     public void start() {
@@ -44,30 +44,41 @@ public class FileUtil {
 
                     @Override
                     public void progress(long total, long progressSize) {
-                        log.info("[{}]已下载：{}", name, cn.hutool.core.io.FileUtil.readableFileSize(progressSize));
+                        int percent = (int) (progressSize * 100 / total);
+
+                        if (percent % 10 == 0 && percent != download[0]) {
+                            download[0] = percent;
+                            log.info("[{}]已下载：{}%", name, percent);
+                        }
                     }
 
                     @Override
                     public void finish() {
                         log.info("[{}]下载完成！", name);
                         ok = true;
-
                     }
                 });
             } catch (Exception e) {
                 log.error("Download file [{}] failed,begin retry {}", name, count + 1);
                 WxBotService.sendText("Download file [" + name + "] failed,begin retry " + count + 1);
+                continue;
             }
 
-            while (!ok) {
+            int sleepMaxTime = 30 * 1000;
+            while (!ok && sleepMaxTime > 0) {
                 try {
                     Thread.sleep(1000);
+                    sleepMaxTime -= 1000;
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
+            if (sleepMaxTime <= 0) {
+                log.error("Download file [{}] failed,begin retry {}", name, count + 1);
+                continue;
+            }
 
-           // BufferedImage image = ImageIO.read(new URL(url));
+            // BufferedImage image = ImageIO.read(new URL(url));
 
             if (url.endsWith(".webp")) {
                 log.info("Downloaded file {} success", name);
@@ -82,7 +93,7 @@ public class FileUtil {
         return null;
     }
 
-    public static File webpToPng(File webpFile, File pngFile) throws IOException {
+    public static void webpToPng(File webpFile, File pngFile) throws IOException {
         ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
 
         // Configure decoding parameters
@@ -96,8 +107,7 @@ public class FileUtil {
         BufferedImage image = reader.read(0, readParam);
 
         //ImageIO.write(image, "png", new File(outputPngPath));
-        ImageIO.write(image, "jpg", pngFile);
-       // ImageIO.write(image, "jpeg", new File(outputJpegPath));
-        return pngFile;
+        ImageIO.write(image, "png", pngFile);
+        // ImageIO.write(image, "jpeg", new File(outputJpegPath));
     }
 }

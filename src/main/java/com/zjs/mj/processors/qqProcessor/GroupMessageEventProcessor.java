@@ -1,6 +1,7 @@
 package com.zjs.mj.processors.qqProcessor;
 
 import com.zjs.mj.entity.dto.User;
+import com.zjs.mj.mapper.ImageMessageMapper;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.mapper.UserMapper;
 import com.zjs.mj.util.TaskPool;
@@ -16,8 +17,8 @@ import org.springframework.stereotype.Component;
 public class GroupMessageEventProcessor extends ProcessorAdaptor {
 
 
-    public GroupMessageEventProcessor(UserUtil userUtil, UserMapper userMapper, TaskMapper taskMapper, TaskPool taskPool) {
-        super(userUtil, userMapper, taskMapper, taskPool);
+    public GroupMessageEventProcessor(UserUtil userUtil, UserMapper userMapper, TaskMapper taskMapper, TaskPool taskPool, ImageMessageMapper imageMessageMapper) {
+        super(userUtil, userMapper, taskMapper, taskPool, imageMessageMapper);
     }
 
     @Override
@@ -28,6 +29,8 @@ public class GroupMessageEventProcessor extends ProcessorAdaptor {
         }
         GroupMessageEvent groupMessageEvent = (GroupMessageEvent) event;
         MessageChain chain = groupMessageEvent.getMessage();
+
+        processStorageImageMessage(groupMessageEvent);
 
         User user = userUtil.getUser(String.valueOf(groupMessageEvent.getSender().getId()));
         MessageChainBuilder replyChain = new MessageChainBuilder().append(new QuoteReply(chain));
@@ -62,7 +65,7 @@ public class GroupMessageEventProcessor extends ProcessorAdaptor {
             String prompt = null;
             if (contentText != null) {
                 prompt = contentText.contentToString();
-                processUvRequest(chain,groupMessageEvent,replyChain,quoteReply, user, event,prompt);
+                processQuoteReplyRequest(chain,groupMessageEvent,replyChain,quoteReply, user, event,prompt);
             }
         }
     }

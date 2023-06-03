@@ -5,10 +5,12 @@ import com.zjs.mj.constant.UserRole;
 import com.zjs.mj.entity.AuthenticationResult;
 import com.zjs.mj.entity.SubmitResult;
 import com.zjs.mj.entity.Task;
+import com.zjs.mj.entity.dto.ImageMessage;
 import com.zjs.mj.entity.dto.User;
 import com.zjs.mj.enums.Action;
 import com.zjs.mj.enums.ImagineMode;
 import com.zjs.mj.enums.TaskStatus;
+import com.zjs.mj.mapper.ImageMessageMapper;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.mapper.UserMapper;
 import com.zjs.mj.util.DateTimeUtil;
@@ -17,12 +19,13 @@ import com.zjs.mj.util.UserUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.mamoe.mirai.event.Event;
+import net.mamoe.mirai.event.events.FriendMessageEvent;
+import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.event.events.MessageEvent;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.MessageChainBuilder;
-import net.mamoe.mirai.message.data.MessageSource;
-import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.message.data.*;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class ProcessorAdaptor implements ChatProcessor {
     protected final UserMapper userMapper;
     protected final TaskMapper taskMapper;
     protected final TaskPool taskPool;
+    protected final ImageMessageMapper imageMessageMapper;
 
 //    public ProcessorAdaptor(UserUtil userUtil, UserMapper userMapper, TaskMapper taskMapper, TaskPool taskPool) {
 //        this.userUtil = userUtil;
@@ -86,9 +90,30 @@ public class ProcessorAdaptor implements ChatProcessor {
         return time < now - 30;
     }
 
+    public void processStorageImageMessage(MessageEvent messageEvent) {
+        MessageChain chain = messageEvent.getMessage();
+        Image image = chain.get(Image.Key);
+        if (image == null) {
+            return;
+        }
+        ImageMessage message = new ImageMessage();
+        message.setMessageId(Task.createSourceKey(messageEvent.getSource()));
+        message.setImageUrl(Image.queryUrl(image));
+        if (messageEvent instanceof FriendMessageEvent) {
+            FriendMessageEvent friendMessageEvent = (FriendMessageEvent) messageEvent;
+            message.setQq(String.valueOf(friendMessageEvent.getSender().getId()));
+        }
+        if (messageEvent instanceof GroupMessageEvent) {
+            GroupMessageEvent groupMessageEvent = (GroupMessageEvent) messageEvent;
+            message.setQq(String.valueOf(groupMessageEvent.getSender().getId()));
+            message.setGroupId(String.valueOf(groupMessageEvent.getGroup().getId()));
+        }
+        message.setTime(LocalDateTime.now());
+        imageMessageMapper.insert(message);
+
+    }
+
     protected void processImagineRequest(MessageEvent messageEvent, MessageChain chain, User user, Event event, MessageChainBuilder builder, String prompt) {
-
-
         Task task = new Task().build(Action.IMAGINE, prompt, user, chain, event, this);
         task.setRootTaskId(task.getTaskId());
         taskMapper.insert(task);
@@ -97,110 +122,138 @@ public class ProcessorAdaptor implements ChatProcessor {
         messageEvent.getSubject().sendMessage(reply);
     }
 
-    protected void processUvRequest(MessageChain chain, MessageEvent messageEvent, MessageChainBuilder builder, QuoteReply quoteReply, User user, Event event,String command) {
+    private void processUVAction(Event event, String command, MessageEvent messageEvent, MessageChainBuilder builder, QuoteReply quoteReply, User user, MessageChain chain) {
+        try {
+            int index = Integer.parseInt(command.substring(1));
+            if (index > 4 || index <= 0) {
+                builder.append("index 错误").build();
+                messageEvent.getSubject().sendMessage(builder.build());
+                return;
+            }
+            MessageSource source = quoteReply.getSource();
+            String sourceKey = Task.createSourceKey(source);
+            log.debug("QuoteReply message find task from sourceKey:{}", sourceKey);
+            LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(Task::getSourceKey, sourceKey);
+            //获取引用消息对应的任务
+            Task task = taskMapper.selectOne(queryWrapper);
+            if (task == null) {
+                log.debug("can not find task from sourceKey:{} failed", sourceKey);
+                builder.append("回复的任务系统未存储").build();
+                messageEvent.getSubject().sendMessage(builder.build());
+                return;
+            }
+            //创建UV任务
+            Action action;
+            Task uvTask = new Task();
+            uvTask.setMode(task.getMode());
+            uvTask.setRelatedTaskId(task.getTaskId());
+            uvTask.setRequestId(task.getRequestId());
+            uvTask.setMessageHash(task.getMessageHash());
+            uvTask.setDeleted(task.isDeleted());
+            if (command.startsWith("U")) {
+                action = Action.UPSCALE;
+            } else {
+                action = Action.VARIATION;
+            }
+            uvTask.setMode(task.getMode());
+            uvTask.setRootTaskId(task.getRootTaskId());
+            uvTask.setFinalPrompt(String.valueOf(index));
+            uvTask.build(action, "", user, chain, event, this);
 
-        //用于处理引用回复的作图请求 例如UV操作需要引用源imagine的消息
-//        MessageContent messageContent = chain.get(PlainText.Key);
-//        if (messageContent == null) {
-//            builder.append("请发送正确的指令").build();
-//            messageEvent.getSubject().sendMessage(builder.build());
-//            return;
-//        }
-
-        command = command.replace(" ", "");
-        command = command.toUpperCase();
-        if (command.startsWith("U") || command.startsWith("V")) {
-            try {
-                int index = Integer.parseInt(command.substring(1));
-                if (index > 4 || index <= 0) {
-                    builder.append("index 错误").build();
-                    messageEvent.getSubject().sendMessage(builder.build());
-                    return;
-                }
-                MessageSource source = quoteReply.getSource();
-                String sourceKey = Task.createSourceKey(source);
-                log.debug("QuoteReply message find task from sourceKey:{}", sourceKey);
-                LambdaQueryWrapper<Task> queryWrapper = new LambdaQueryWrapper<>();
-                queryWrapper.eq(Task::getSourceKey, sourceKey);
-                //获取引用消息对应的任务
-                Task task = taskMapper.selectOne(queryWrapper);
-                if (task == null) {
-                    log.debug("can not find task from sourceKey:{} failed", sourceKey);
-                    builder.append("回复的任务系统未存储").build();
-                    messageEvent.getSubject().sendMessage(builder.build());
-                    return;
-                }
-                //创建UV任务
-                Action action;
-                Task uvTask = new Task();
-                uvTask.setMode(task.getMode());
-                uvTask.setRelatedTaskId(task.getTaskId());
-                uvTask.setRequestId(task.getRequestId());
-                uvTask.setMessageHash(task.getMessageHash());
-                uvTask.setDeleted(task.isDeleted());
-                if (command.startsWith("U")) {
-                    action = Action.UPSCALE;
-                } else {
-                    action = Action.VARIATION;
-                }
-                uvTask.setMode(task.getMode());
-                uvTask.setRootTaskId(task.getRootTaskId());
-                uvTask.setFinalPrompt(String.valueOf(index));
-                uvTask.build(action, "", user, chain, event, this);
-
-                //如果U任务的源任务已经成功了，那么就不需要再次提交了
-                //U操作再次提交会mj会报错，不会重新生成，事件不好监听，所以直接拒绝
-                //V操作允许重复提交，因为V操作是可以多次提交的
-                if (uvTask.getAction().equals(Action.UPSCALE)) {
-                    LambdaQueryWrapper<Task> containSameSuccessTaskWrapper = new LambdaQueryWrapper<>();
-                    containSameSuccessTaskWrapper.eq(Task::getRelatedTaskId, uvTask.getRelatedTaskId())
-                            .eq(Task::getAction, uvTask.getAction())
-                            .eq(Task::getFinalPrompt, uvTask.getFinalPrompt())
-                            .eq(Task::getStatus, TaskStatus.SUCCESS);
-                    Task successSameTask = taskMapper.selectOne(containSameSuccessTaskWrapper);
-                    if (successSameTask != null) {
-                        builder.append("该任务已经成功了，不需要再次提交").build();
-                        messageEvent.getSubject().sendMessage(builder.build());
-                        return;
-                    }
-                } else {
-                    //对于V操作，对同一个rootTaskId，只能有一个V操作在进行
-                    LambdaQueryWrapper<Task> containSameVTaskWrapper = new LambdaQueryWrapper<>();
-                    containSameVTaskWrapper.eq(Task::getRootTaskId, uvTask.getRootTaskId())
-                            .eq(Task::getAction, uvTask.getAction())
-                            .in(Task::getStatus, TaskStatus.WAITING, TaskStatus.RUNNING);
-                    Task sameVTask = taskMapper.selectOne(containSameVTaskWrapper);
-                    if (sameVTask != null) {
-                        log.warn("同一时间只能对同一个rootTaskId进行一次V操作，当前任务id为{}", uvTask.getTaskId());
-                        builder.append("等待上次V操作成功后重新申请").build();
-                        messageEvent.getSubject().sendMessage(builder.build());
-                        return;
-                    }
-                }
-
-                //删除数据库里对UV对应失败的任务(waiting 或者running状态，没有正常结束的任务)
-                //失败的原因 可能是中途退出系统，网络异常等，需要删除任务记录
-                //因为UV作图成功后，是靠action,imagine task id,index来查找生成的UV任务
-                //如果之前有未完成的任务，那会导致最后数据保存数据库时，有两个相同的任务，一个成功，一个失败
-                LambdaQueryWrapper<Task> deleteWrapper = new LambdaQueryWrapper<>();
-                deleteWrapper.eq(Task::getRelatedTaskId, uvTask.getRelatedTaskId())
+            //如果U任务的源任务已经成功了，那么就不需要再次提交了
+            //U操作再次提交会mj会报错，不会重新生成，事件不好监听，所以直接拒绝
+            //V操作允许重复提交，因为V操作是可以多次提交的
+            if (uvTask.getAction().equals(Action.UPSCALE)) {
+                LambdaQueryWrapper<Task> containSameSuccessTaskWrapper = new LambdaQueryWrapper<>();
+                containSameSuccessTaskWrapper.eq(Task::getRelatedTaskId, uvTask.getRelatedTaskId())
                         .eq(Task::getAction, uvTask.getAction())
                         .eq(Task::getFinalPrompt, uvTask.getFinalPrompt())
-                        .notIn(Task::getStatus, TaskStatus.SUCCESS, TaskStatus.FAILED);
-                taskMapper.delete(deleteWrapper);
-
-                taskMapper.insert(uvTask);
-                SubmitResult submitResult = taskPool.submitTask(uvTask);
-                MessageChain reply = builder.append(submitResult.getMessage()).build();
-                messageEvent.getSubject().sendMessage(reply);
-
-            } catch (NumberFormatException e) {
-                builder.append("请发送正确的指令").build();
-                messageEvent.getSubject().sendMessage(builder.build());
+                        .eq(Task::getStatus, TaskStatus.SUCCESS);
+                Task successSameTask = taskMapper.selectOne(containSameSuccessTaskWrapper);
+                if (successSameTask != null) {
+                    builder.append("该任务已经成功了，不需要再次提交").build();
+                    messageEvent.getSubject().sendMessage(builder.build());
+                    return;
+                }
+            } else {
+                //对于V操作，对同一个rootTaskId，只能有一个V操作在进行
+                LambdaQueryWrapper<Task> containSameVTaskWrapper = new LambdaQueryWrapper<>();
+                containSameVTaskWrapper.eq(Task::getRootTaskId, uvTask.getRootTaskId())
+                        .eq(Task::getAction, uvTask.getAction())
+                        .in(Task::getStatus, TaskStatus.WAITING, TaskStatus.RUNNING);
+                Task sameVTask = taskMapper.selectOne(containSameVTaskWrapper);
+                if (sameVTask != null) {
+                    log.warn("同一时间只能对同一个rootTaskId进行一次V操作，当前任务id为{}", uvTask.getTaskId());
+                    builder.append("等待上次V操作成功后重新申请").build();
+                    messageEvent.getSubject().sendMessage(builder.build());
+                    return;
+                }
             }
 
+            //删除数据库里对UV对应失败的任务(waiting 或者running状态，没有正常结束的任务)
+            //失败的原因 可能是中途退出系统，网络异常等，需要删除任务记录
+            //因为UV作图成功后，是靠action,imagine task id,index来查找生成的UV任务
+            //如果之前有未完成的任务，那会导致最后数据保存数据库时，有两个相同的任务，一个成功，一个失败
+            LambdaQueryWrapper<Task> deleteWrapper = new LambdaQueryWrapper<>();
+            deleteWrapper.eq(Task::getRelatedTaskId, uvTask.getRelatedTaskId())
+                    .eq(Task::getAction, uvTask.getAction())
+                    .eq(Task::getFinalPrompt, uvTask.getFinalPrompt())
+                    .notIn(Task::getStatus, TaskStatus.SUCCESS, TaskStatus.FAILED);
+            taskMapper.delete(deleteWrapper);
 
+            taskMapper.insert(uvTask);
+            SubmitResult submitResult = taskPool.submitTask(uvTask);
+            MessageChain reply = builder.append(submitResult.getMessage()).build();
+            messageEvent.getSubject().sendMessage(reply);
+
+        } catch (NumberFormatException e) {
+            builder.append("请发送正确的指令").build();
+            messageEvent.getSubject().sendMessage(builder.build());
         }
+
+    }
+
+    protected void processQuoteReplyRequest(MessageChain chain, MessageEvent messageEvent, MessageChainBuilder builder, QuoteReply quoteReply, User user, Event event, String command) {
+        //处理U操作和V操作
+        //处理垫图和describe操作
+
+        if (command.startsWith("U") || command.startsWith("V") || command.startsWith("u") || command.startsWith("v")) {
+            command = command.toUpperCase();
+            processUVAction(event, command, messageEvent, builder, quoteReply, user, chain);
+        } else {
+            //处理垫图和describe操作
+            if (command.startsWith("/describe")) {
+                //TODO
+            } else {
+                if (command.startsWith("/")) {
+                    processPadImagine(chain, messageEvent, builder, quoteReply, user, event, command);
+                }
+            }
+        }
+    }
+
+    private void processPadImagine(MessageChain chain, MessageEvent messageEvent, MessageChainBuilder builder, QuoteReply quoteReply, User user, Event event, String command) {
+        //处理垫图和describe操作
+        MessageSource source = quoteReply.getSource();
+        String sourceKey = Task.createSourceKey(source);
+        LambdaQueryWrapper<ImageMessage> imageMessageWrapper = new LambdaQueryWrapper<>();
+        imageMessageWrapper.eq(ImageMessage::getMessageId, sourceKey);
+        ImageMessage imageMessage = imageMessageMapper.selectOne(imageMessageWrapper);
+        if (imageMessage == null) {
+            builder.append("回复的消息未存储").build();
+            messageEvent.getSubject().sendMessage(builder.build());
+            return;
+        }
+        //创建垫图任务
+        Task padTask = new Task();
+        System.out.println(imageMessage.getImageUrl());
+        padTask.build(Action.PAD_IMAGINE, command, user, chain, event, this, imageMessage.getImageUrl());
+
+        taskMapper.insert(padTask);
+        SubmitResult submitResult = taskPool.submitTask(padTask);
+        MessageChain reply = builder.append(submitResult.getMessage()).build();
+        messageEvent.getSubject().sendMessage(reply);
     }
 
 

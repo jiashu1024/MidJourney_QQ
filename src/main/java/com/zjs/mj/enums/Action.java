@@ -21,6 +21,8 @@ public enum Action {
 	/**
 	 * 图转prompt.
 	 */
-	DESCRIBE
+	DESCRIBE,
+
+	PAD_IMAGINE,
 
 }

@@ -13,6 +13,7 @@ import net.mamoe.mirai.auth.BotAuthorization;
 import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOfflineEvent;
+import net.mamoe.mirai.event.events.BotOnlineEvent;
 import net.mamoe.mirai.event.events.FriendMessageEvent;
 import net.mamoe.mirai.event.events.GroupMessageEvent;
 import net.mamoe.mirai.utils.BotConfiguration;
@@ -96,11 +97,15 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
             if (qqEvent instanceof BotOfflineEvent) {
                 WxBotService.sendText("bot["+ bot.getId() + "]掉线");
             }
+
+            if (qqEvent instanceof BotOnlineEvent) {
+                WxBotService.sendText("bot["+ bot.getId() + "]上线");
+            }
         });
         try {
             bot.login();
             ok = true;
-            WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
+            //WxBotService.sendText("bot["+ bot.getId() + "]登录成功");
         } catch (Exception e) {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
