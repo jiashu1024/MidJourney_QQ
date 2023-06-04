@@ -56,6 +56,7 @@ public class SchedulingTask {
 
             for (User user : users) {
                 user.setFastCount(normalCount.getFastCount());
+                user.setFastExpireTime(LocalDateTime.now().plusMonths(1));
                 userMapper.updateById(user);
             }
         }
@@ -90,6 +91,9 @@ public class SchedulingTask {
                 } else {
                     user.setRelaxCount(plus.getRelaxCount());
                 }
+                //将relax过期时间设置为一天后的零点
+                user.setRelaxExpireTime(LocalDateTime.now().plusDays(1).withHour(0).withMinute(0).withSecond(0));
+
                 userMapper.updateById(user);
             }
 

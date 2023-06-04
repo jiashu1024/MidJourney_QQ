@@ -1,8 +1,10 @@
 package com.zjs.mj.Bot;
 
 import com.zjs.mj.config.Properties;
+import com.zjs.mj.mapper.UserMapper;
 import com.zjs.mj.processors.qqProcessor.FriendMessageEventProcessor;
 import com.zjs.mj.processors.qqProcessor.GroupMessageEventProcessor;
+import com.zjs.mj.schedulings.SchedulingTask;
 import com.zjs.mj.service.WxBotService;
 import com.zjs.mj.util.TaskPool;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +45,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
     private final ApplicationContext context;
 
     private final TaskPool taskPool;
+    private final UserMapper userMapper;
 
     public static boolean ok = false;
 
@@ -109,12 +112,13 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         } catch (Exception e) {
             log.error("bot login error", e);
             WxBotService.sendText("bot登录失败\n" + e.getCause().getMessage());
-            deleteFolder(cache);
+            deleteFolder(cache); //删除登录失败的设备信息
             return;
         }
 
         try {
             discordBot.login();
+            refreshUserRelaxCount();
             new Thread(taskPool::work).start();
         } catch (Exception e) {
             log.error("discord bot login error", e);
@@ -134,5 +138,10 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
         }
         // 删除空文件夹或文件
         folder.delete();
+    }
+
+    private final SchedulingTask schedulingTask;
+    private void refreshUserRelaxCount() {
+        schedulingTask.updateRelaxCount();
     }
 }

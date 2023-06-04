@@ -26,7 +26,7 @@
 
 ## 快速使用
 
-​	[用户手册](docs/quickStart.md)
+​	[部署教程](docs/quickStart.md)
 
 ​	[使用教程](docs/command.md)
 

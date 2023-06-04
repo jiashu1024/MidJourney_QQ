@@ -22,6 +22,10 @@ docker run --name mj-mysql -e MYSQL_ROOT_PASSWORD=zhangsan -e MYSQL_DATABASE=mid
 
 如果启动直接报错，除了报错禁止登录，可尝试重新启动项目，有很大几率会成功进入登录验证流程。
 
+如果是扫码方式登录，要在服务器运行：
+1. 可先在服务器安装mysql docker版本，将配置文件里的localhost换成服务器ip，开放3306端口
+2. 本地启动jar包，扫码登录，登录成功后，将cache目录上传服务器
+3. 服务器启动jar包，可以不用在扫码，直接成功登录
 
 
 如果是在远程服务器上登录，由于扫码登录需要机器人和扫码在同一网络下，所以可自建vpn或者[教程](vpn.md)
