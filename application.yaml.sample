@@ -6,6 +6,15 @@ logging:
     ROOT: info
     com.zjs.mj: debug
     com.zjs.mj.mapper: info
+  file:
+    name: logs/mj.log
+    max-history: 30
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n"
+  rolling:
+    policy: daily
+    enabled: true
+    max-history: 30
 
 config:
   mj:

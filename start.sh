@@ -60,4 +60,21 @@ echo "当前目录：$current_dir"
 echo "Starting mj-QQ-mirai-1.0.0.jar..."
 
 
-java -Dspring.config.location="$current_dir/application.yaml" -jar mj-QQ-mirai-1.0.0.jar
+# 检查 mj-QQ-mirai-1.0.0.jar 是否在运行
+echo "Checking if mj-QQ-mirai-1.0.0.jar is already running..."
+pid=$(pgrep -f "java -Dspring.config.location=$current_dir/application.yaml -jar mj-QQ-mirai-1.0.0.jar")
+if [ -n "$pid" ]; then
+    echo "mj-QQ-mirai-1.0.0.jar is already running with PID: $pid"
+    echo "Stopping the existing process..."
+    kill -9 "$pid"
+    echo "The existing process has been stopped."
+fi
+
+# 检查输入的参数
+if [ "$1" = "bg" ]; then
+    echo "Starting mj-QQ-mirai-1.0.0.jar in the background..."
+    nohup java -Dspring.config.location="$current_dir/application.yaml" -jar mj-QQ-mirai-1.0.0.jar > /dev/null 2>&1 &
+else
+    echo "Starting mj-QQ-mirai-1.0.0.jar in the foreground..."
+    java -Dspring.config.location="$current_dir/application.yaml" -jar mj-QQ-mirai-1.0.0.jar
+fi

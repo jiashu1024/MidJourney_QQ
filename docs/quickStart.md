@@ -8,24 +8,27 @@
 
 ## 部署
 
-本程序需要jdk8环境，由于qq使用密码登录会触发验证，进行控制台交互，所以暂不支持docker部署运行，但是项目依赖的mysql数据库可用docker运行。
-
-1. 在项目根目录下运行以下命令，启动mysql数据库
+本程序需要jdk8环境，由于qq使用密码登录会触发验证，进行控制台交互，所以暂不支持docker部署运行，但是项目依赖的mysql数据库可用docker运行。一键运行脚本支持docker的自动安装和mysql数据库(docker)的启动
 
 ```shell
-docker run --name mj-mysql -e MYSQL_ROOT_PASSWORD=zhangsan -e MYSQL_DATABASE=midjourney -p 3306:3306 -v ./sql:/docker-entrypoint-initdb.d -d mysql:8.0
+#项目根目录下运行
+chmod +x start.sh
+
+bash start.sh  #前台运行，退出终端运行停止
+bash star.sh bg  #后台运行，退出终端运行不会停止
+
+##如果使用password方式登录，需要保证先前台运行，与控制台交互完成登录的验证，登录成功后再使用后台运行
+
+##查看日志
+tail -f logs/mj.log
 ```
 
-2. 下载release里的[jar包](https://github.com/1130600015/MidJourney_QQ/releases/tag/v1.0.0)，下载到项目根目录下
-3. 修改application.yaml配置文件
-4. java -jar mj-QQ-mirai-1.0.0.jar  
 
-如果启动直接报错，除了报错禁止登录，可尝试重新启动项目，有很大几率会成功进入登录验证流程。
 
 如果是扫码方式登录，要在服务器运行：
-1. 可先在服务器安装mysql docker版本，将配置文件里的localhost换成服务器ip，开放3306端口
-2. 本地启动jar包，扫码登录，登录成功后，将cache目录上传服务器
-3. 服务器启动jar包，可以不用在扫码，直接成功登录
+1. 服务器先搭建mysql环境，可通过运行一键脚本创建mysql环境
+1. 本地修改application.yaml配置文件，修改数据库配置为服务器ip地址，记得打开3306端口
+1. 本地通过扫码登录成功后，会在项目根目录下生成cache登录凭证文件夹，将该文件夹上传服务器项目根目录下。再通过一键脚本后台运行
 
 
 如果是在远程服务器上登录，由于扫码登录需要机器人和扫码在同一网络下，所以可自建vpn或者[教程](vpn.md)
