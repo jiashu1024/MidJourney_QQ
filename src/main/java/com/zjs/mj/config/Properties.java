@@ -12,6 +12,7 @@ public class Properties {
     private final AliyunConfig aliyun = new AliyunConfig();
     private final QqConfig qq = new QqConfig();
     private final WxConfig wx = new WxConfig();
+    private final ProxyConfig proxy = new ProxyConfig();
 
     @Data
     public static class MjConfig {
@@ -74,6 +75,23 @@ public class Properties {
         private String account;
         private String password;
     }
+
+
+    @Data
+    public static class ProxyConfig{
+        private boolean enable;
+        private HttpProxy http;
+        private HttpProxy https;
+        private HttpProxy socks;
+    }
+
+    @Data
+    public static class HttpProxy{
+        private String host;
+        private String port;
+    }
+
+
 
 
 

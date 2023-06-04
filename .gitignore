@@ -12,11 +12,19 @@
 .idea
 .mvn/
 cache/
-target
+mvnw.cmd
+mvnw
+
+# 忽略 target 目录
+target/*
+!/target/*.jar
+
+# 不忽略 target 目录下的 JAR 文件
+
 src/test/
 .DS_Store
 application.bak
-application.empty
+application.yaml
 # Package Files #
 *.war
 *.nar

@@ -1,0 +1,58 @@
+server:
+  port: 9093
+
+logging:
+  level:
+    ROOT: info
+    com.zjs.mj: debug
+    com.zjs.mj.mapper: info
+
+config:
+  mj:
+    plan: 4  #可选值1,2,3,4 分别对应(免费订阅，$10,$30,$60)
+    guild-id:     #discord 服务器id
+    channel-id:    #discord 频道id
+    user-token:  #discord 用户token
+    bot-token:   #discord 机器人token
+    user-id:     #midjourney 用户id
+    token: eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0*****  #midjourney 用户token (老长一串了)
+
+  aliyun:
+    accessKeyId:     #阿里云accessKeyId
+    accessKeySecret:
+  qq:
+    admin: 1130600015   #管理员qq号(可填写你大号的qq号)
+    login-type:  qrcode   #password or qrcode
+    # MACOS  ANDROID_WATCH  ANDROID_PAD IPAD  ANDROID_PHONE五种协议
+    #1. 登录方式选择password时五种协议都可以，推荐 ANDROID_PAD IPAD
+    #2. 登录方式选择qrcode时，只能选择ANDROID_WATCH  MACOS 推荐ANDROID_WATCH
+    protocol: ANDROID_WATCH
+    account: 123456
+    password: 123456  #当登录方式为qrcode时，该项可不用设置
+  wx:
+    webhook: https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=*******  #企业微信机器人webhook
+  proxy:      #如果你用的国内服务器，需要配置代理
+    enable: false
+    http:
+        host: localhost
+        port: 7890
+    https:
+        host: localhost
+        port: 7890
+    socks:
+        host: localhost
+        port: 7890
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/midjourney?useUnicode=true&characterEncoding=utf-8&allowPublicKeyRetrieval=true&useSSL=false&socketTimeout=60000&connectTimeout=30000&serverTimezone=Asia/Shanghai
+    username: root
+    password: zhangsan
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      minimum-idle: 3
+      maximum-pool-size: 10
+      connection-test-query: SELECT 1
+      max-lifetime: 1800000
+      idle-timeout: 60000
+      connection-timeout:   30000
+

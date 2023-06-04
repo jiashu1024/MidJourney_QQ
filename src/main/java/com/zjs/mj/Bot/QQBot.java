@@ -122,7 +122,7 @@ public class QQBot implements ApplicationListener<ContextRefreshedEvent> {
             new Thread(taskPool::work).start();
         } catch (Exception e) {
             log.error("discord bot login error", e);
-            WxBotService.sendText("discord bot登录失败\n" + e.getCause().getMessage());
+            WxBotService.sendText("discord bot登录失败\n" + e.getMessage());
             SpringApplication.exit(context, () -> 0);
         }
     }
