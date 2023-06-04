@@ -56,10 +56,6 @@ current_dir=$(pwd)
 # 打印当前目录的绝对路径
 echo "当前目录：$current_dir"
 
-# 启动 mj-QQ-mirai-1.0.0.jar
-echo "Starting mj-QQ-mirai-1.0.0.jar..."
-
-
 # 检查 mj-QQ-mirai-1.0.0.jar 是否在运行
 echo "Checking if mj-QQ-mirai-1.0.0.jar is already running..."
 pid=$(pgrep -f "java -Dspring.config.location=$current_dir/application.yaml -jar mj-QQ-mirai-1.0.0.jar")
@@ -69,6 +65,9 @@ if [ -n "$pid" ]; then
     kill -9 "$pid"
     echo "The existing process has been stopped."
 fi
+
+# 启动 mj-QQ-mirai-1.0.0.jar
+echo "Starting mj-QQ-mirai-1.0.0.jar..."
 
 # 检查输入的参数
 if [ "$1" = "bg" ]; then

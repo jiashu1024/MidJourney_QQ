@@ -142,7 +142,6 @@ public class Task {
     private boolean posted;
 
 
-
     public Task() {
     }
 
@@ -150,11 +149,11 @@ public class Task {
         return build(RandomUtil.randomNumbers(16), action, prompt, user, chain, event, processor);
     }
 
-    public Task build(Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor,String imageUrl) {
-        return build(RandomUtil.randomNumbers(16), action, prompt, user, chain, event, processor,imageUrl);
+    public Task build(Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor, String imageUrl) {
+        return build(RandomUtil.randomNumbers(16), action, prompt, user, chain, event, processor, imageUrl);
     }
 
-    public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor,String padImagineUrl) {
+    public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor, String padImagineUrl) {
         this.taskId = taskId;
         this.action = action;
         this.prompt = prompt;
@@ -211,7 +210,7 @@ public class Task {
     }
 
     public Task build(String taskId, Action action, String prompt, User user, MessageChain chain, Event event, ChatProcessor processor) {
-        return build(taskId, action, prompt, user, chain, event, processor,"");
+        return build(taskId, action, prompt, user, chain, event, processor, "");
     }
 
     private String buildCommandPara(String param) {
@@ -223,9 +222,9 @@ public class Task {
     }
 
 
-
     /**
      * 每个Task的执行逻辑
+     *
      * @param service
      * @param set
      * @param mapper
@@ -238,9 +237,9 @@ public class Task {
             if (this.action.equals(Action.IMAGINE) || this.action.equals(Action.PAD_IMAGINE)) {
                 result = service.imagine(this.finalPrompt, this.mode);
             } else if (this.action.equals(Action.UPSCALE)) {
-                result = service.upscale(this.finalPrompt, this.messageHash, this.requestId,this.isDeleted);
+                result = service.upscale(this.finalPrompt, this.messageHash, this.requestId, this.isDeleted);
             } else if (this.action.equals(Action.VARIATION)) {
-                result = service.variation(this.finalPrompt, this.messageHash, this.mode, this.requestId,this.isDeleted);
+                result = service.variation(this.finalPrompt, this.messageHash, this.mode, this.requestId, this.isDeleted);
             }
             //TODO: describe等命令支持
             if (result != null && result.isSuccess()) {
@@ -261,6 +260,7 @@ public class Task {
 
     /**
      * 用于创建消息的key，用于后续根据消息找到对应的任务
+     *
      * @param source qq消息来源
      * @return
      */
@@ -269,7 +269,7 @@ public class Task {
         //使用targetId+time作为sourceKey 有可能出现时间不一致
         //使用targetId + ids，不同设备上ids不一致
         long id = source.getFromId();
-       // int time = source.getTime()+1;
+        // int time = source.getTime()+1;
         int internalId = source.getInternalIds()[0];
         return id + "_" + internalId;
     }
@@ -351,6 +351,7 @@ public class Task {
     /**
      * 发送任务结果，需要将图片存储到本地
      * 机器人给用户发送完imagine结果的图片后，需要记住这个发送消息的源，用于后续uv操作根据这个key找到对应的imagine任务，用于携带参数发起uv请求
+     *
      * @param task
      * @param contact
      * @param builder
@@ -371,10 +372,8 @@ public class Task {
         log.info("send image to {} success", contact.getId());
 
 
-
         task.setSourceKey(Task.createSourceKey(receipt.getSource()));
-        builder.append("图片生成成功，\n")
-                .append("引用图片回复：\n")
+        builder.append("引用图片回复：\n")
                 .append("U1 U2 U3 U4放大图片\n")
                 .append("V1 V2 V3 V4扩展风格")
                 .build();
