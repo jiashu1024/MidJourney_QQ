@@ -188,10 +188,14 @@ public class SchedulingTask {
                 recentJob.setChannelId((String) map.get("platform_channel_id"));
                 recentJob.setGuildId((String) map.get("guild_id"));
                 recentJob.setPrompt((String) map.get("prompt"));
-                int left = recentJob.getPrompt().indexOf("[");
-                int right = recentJob.getPrompt().indexOf("]");
-                if (left != -1 && right != -1) {
-                    recentJob.setTaskId(recentJob.getPrompt().substring(left + 1, right));
+
+                String prompt = recentJob.getPrompt();
+                if (prompt != null) {
+                    int left = prompt.indexOf("[");
+                    int right = prompt.indexOf("]");
+                    if (left != -1 && right != -1) {
+                        recentJob.setTaskId(prompt.substring(left + 1, right));
+                    }
                 }
                 recentJob.setMessageHash((String) map.get("id"));
                 recentJob.setMessageId((String) map.get("platform_message_id"));
