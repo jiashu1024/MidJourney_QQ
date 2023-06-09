@@ -90,6 +90,23 @@ public class ProcessorAdaptor implements ChatProcessor {
         return time < now - 30;
     }
 
+
+    protected void processImagineMatch(MessageChain chain,MessageChainBuilder builder,MessageEvent messageEvent,User user,Event event) {
+        MessageContent messageContent = chain.get(PlainText.Key);
+
+        if (messageContent == null) {
+            builder.append("请发送正确的指令").build();
+            messageEvent.getSubject().sendMessage(builder.build());
+            return;
+        }
+
+        String prompt = messageContent.contentToString();
+        if (prompt.startsWith("/imagine")) {
+            prompt = prompt.replace("/imagine", "");
+            processImagineRequest(messageEvent, chain, user, event, builder, prompt);
+        }
+    }
+
     public void processStorageImageMessage(MessageEvent messageEvent) {
         MessageChain chain = messageEvent.getMessage();
         Image image = chain.get(Image.Key);
@@ -110,7 +127,6 @@ public class ProcessorAdaptor implements ChatProcessor {
         }
         message.setTime(LocalDateTime.now());
         imageMessageMapper.insert(message);
-
     }
 
     protected void processImagineRequest(MessageEvent messageEvent, MessageChain chain, User user, Event event, MessageChainBuilder builder, String prompt) {
@@ -227,6 +243,7 @@ public class ProcessorAdaptor implements ChatProcessor {
                 //TODO
             } else {
                 if (command.startsWith("/")) {
+                    command = command.substring(1);
                     processPadImagine(chain, messageEvent, builder, quoteReply, user, event, command);
                 }
             }

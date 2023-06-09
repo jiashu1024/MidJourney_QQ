@@ -55,6 +55,10 @@ public class MjMessageProcessor implements MessageProcessor {
         }
         Task task = taskMapper.selectById(taskId);
 
+        if (task == null) {
+            return;
+        }
+
         task.setRequestId(message.getId());
         if ("Waiting to start".equals(messageData.getStatus())) {
             log.info("task[{}] : waiting to start ", task.getTaskId());

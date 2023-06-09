@@ -35,24 +35,29 @@ public class GroupMessageEventProcessor extends ProcessorAdaptor {
         User user = userUtil.getUser(String.valueOf(groupMessageEvent.getSender().getId()));
         MessageChainBuilder replyChain = new MessageChainBuilder().append(new QuoteReply(chain));
         QuoteReply quoteReply = chain.get(QuoteReply.Key);
+        MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(chain));
+
         if (quoteReply == null) {
-            MessageContent messageContent = chain.get(At.Key);
-            if (messageContent == null) {
-                log.debug("group {} at message content is null", groupMessageEvent.getGroup().getId());
-                return;
-            }
-            if (messageContent instanceof At) {
-                At at = (At) messageContent;
-                if (at.getTarget() == ((GroupMessageEvent) event).getBot().getId()) {
-                    PlainText contentText = (PlainText) chain.stream().filter(PlainText.class::isInstance).findFirst().orElse(null);
-                    if (contentText == null) {
-                        log.debug("group {} at message contentText is null", groupMessageEvent.getGroup().getId());
-                        return;
-                    }
-                    String prompt = contentText.contentToString();
-                    processImagineRequest(groupMessageEvent, chain, user, event,replyChain,prompt);
-                }
-            }
+            processImagineMatch(chain,builder,groupMessageEvent,user,event);
+
+
+//            MessageContent messageContent = chain.get(At.Key);
+//            if (messageContent == null) {
+//                log.debug("group {} at message content is null", groupMessageEvent.getGroup().getId());
+//                return;
+//            }
+//            if (messageContent instanceof At) {
+//                At at = (At) messageContent;
+//                if (at.getTarget() == ((GroupMessageEvent) event).getBot().getId()) {
+//                    PlainText contentText = (PlainText) chain.stream().filter(PlainText.class::isInstance).findFirst().orElse(null);
+//                    if (contentText == null) {
+//                        log.debug("group {} at message contentText is null", groupMessageEvent.getGroup().getId());
+//                        return;
+//                    }
+//                    String prompt = contentText.contentToString();
+//                    processImagineRequest(groupMessageEvent, chain, user, event,replyChain,prompt);
+//                }
+//            }
 
         } else {
 
@@ -64,7 +69,7 @@ public class GroupMessageEventProcessor extends ProcessorAdaptor {
             PlainText contentText = (PlainText) chain.stream().filter(PlainText.class::isInstance).findFirst().orElse(null);
             String prompt = null;
             if (contentText != null) {
-                prompt = contentText.contentToString();
+                prompt = contentText.contentToString().trim();
                 processQuoteReplyRequest(chain,groupMessageEvent,replyChain,quoteReply, user, event,prompt);
             }
         }

@@ -61,22 +61,26 @@ public class FriendMessageEventProcessor extends ProcessorAdaptor {
         MessageChainBuilder builder = new MessageChainBuilder().append(new QuoteReply(chain));
 
         if (quoteReply == null) {
-            Image image = chain.get(Image.Key);
-            if (image != null) {
-                return;
-            }
 
-            MessageContent messageContent = chain.get(PlainText.Key);
-            String prompt = messageContent.contentToString();
-            //处理非引用回复的作图请求 私聊直接发prompt即可作图
-            processImagineRequest(messageEvent, chain, user, event, builder, prompt);
+            processImagineMatch(chain,builder,messageEvent,user,event);
+//            Image image = chain.get(Image.Key);
+//            if (image != null) {
+//                return;
+//            }
+
+//            MessageContent messageContent = chain.get(PlainText.Key);
+//            String prompt = messageContent.contentToString();
+//            //处理非引用回复的作图请求 私聊直接发prompt即可作图
+//            processImagineRequest(messageEvent, chain, user, event, builder, prompt);
         } else {
             MessageContent messageContent = chain.get(PlainText.Key);
+
             if (messageContent == null) {
                 builder.append("请发送正确的指令").build();
                 messageEvent.getSubject().sendMessage(builder.build());
                 return;
             }
+
             String prompt = messageContent.contentToString();
             processQuoteReplyRequest(chain, messageEvent, builder, quoteReply, user, event,prompt);
         }

@@ -14,6 +14,7 @@ import com.zjs.mj.enums.TaskStatus;
 import com.zjs.mj.mapper.TaskMapper;
 import com.zjs.mj.processors.qqProcessor.ChatProcessor;
 import com.zjs.mj.processors.qqProcessor.ProcessorAdaptor;
+import com.zjs.mj.service.ImageMessageService;
 import com.zjs.mj.service.MjService;
 import com.zjs.mj.service.UserService;
 import com.zjs.mj.util.AliTranslate;
@@ -28,10 +29,7 @@ import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.Event;
 import net.mamoe.mirai.message.MessageReceipt;
 import net.mamoe.mirai.message.MessageSerializers;
-import net.mamoe.mirai.message.data.MessageChain;
-import net.mamoe.mirai.message.data.MessageChainBuilder;
-import net.mamoe.mirai.message.data.MessageSource;
-import net.mamoe.mirai.message.data.QuoteReply;
+import net.mamoe.mirai.message.data.*;
 
 import java.io.File;
 import java.time.LocalDateTime;
@@ -317,25 +315,31 @@ public class Task {
             if (action.equals(Action.IMAGINE) || action.equals(Action.PAD_IMAGINE)) {
                 sendResultNeedStorage(this, contact, builder);
             } else if (action.equals(Action.UPSCALE)) {
-                File file = null;
-                try {
-                    file = FileUtil.downloadFile(this.getImageUrl());
-                } catch (Exception e) {
-                    log.error("download file error ", e);
-                    builder.append("图片下载失败").build();
-                    contact.sendMessage(builder.build());
-                    return;
-                }
-                log.info("begin to send image to {}", contact.getId());
-                MessageReceipt<Contact> receipt = Contact.sendImage(contact, file);
-                this.setSourceKey(Task.createSourceKey(receipt.getSource()));
-                log.info("send image to {} success", contact.getId());
-                builder.append("图片放大成功").build();
-                contact.sendMessage(builder.build());
+                sendResultNeedStorage(this, contact, builder);
+//                File file = null;
+//                try {
+//                    file = FileUtil.downloadFile(this.getImageUrl());
+//                } catch (Exception e) {
+//                    log.error("download file error ", e);
+//                    builder.append("图片下载失败").build();
+//                    contact.sendMessage(builder.build());
+//                    return;
+//                }
+//                log.info("begin to send image to {}", contact.getId());
+//                MessageReceipt<Contact> receipt = Contact.sendImage(contact, file);
+//                this.setSourceKey(Task.createSourceKey(receipt.getSource()));
+//                log.info("send image to {} success", contact.getId());
+//                builder.append("图片放大成功").build();
+//                contact.sendMessage(builder.build());
             } else if (action.equals(Action.VARIATION)) {
                 sendResultNeedStorage(this, contact, builder);
             }
 
+            if (!user.getRole().equals(UserRole.ADMIN)) {
+                MessageChainBuilder balanceBuilder = new MessageChainBuilder().append(new QuoteReply(messageSource));
+                MessageChain balanceMessage = balanceBuilder.append("当前剩余次数：\n").append(String.valueOf(this.user.getFastCount())).append("次快速模式\n").append(String.valueOf(this.user.getRelaxCount())).append("次慢速模式\n").build();
+                contact.sendMessage(balanceMessage);
+            }
         } else if (status.equals(TaskStatus.RUNNING)) {
             //  if (action.equals(Action.IMAGINE)) {
             MessageChain build = builder.append(new QuoteReply(messageSource)).append("正在生成图片，请稍后……").build();
@@ -371,14 +375,26 @@ public class Task {
         MessageReceipt<Contact> receipt = Contact.sendImage(contact, file);
         log.info("send image to {} success", contact.getId());
 
-
         task.setSourceKey(Task.createSourceKey(receipt.getSource()));
-        builder.append("引用图片回复：\n")
-                .append("U1 U2 U3 U4放大图片\n")
-                .append("V1 V2 V3 V4扩展风格")
-                .build();
+        if (task.getAction() == Action.IMAGINE || task.getAction() == Action.VARIATION || task.getAction() == Action.PAD_IMAGINE) {
+            builder.append("引用图片回复：\n")
+                    .append("U1 U2 U3 U4放大图片\n")
+                    .append("V1 V2 V3 V4扩展风格")
+                    .build();
+        }
+        if (task.getAction() == Action.UPSCALE) {
+            builder.append("图片放大成功");
+        }
+
         contact.sendMessage(builder.build());
         UserService.decreaseCount(task);
+
+
+        Action action = task.getAction();
+        if (action == Action.IMAGINE || action == Action.UPSCALE || action == Action.VARIATION || action == Action.PAD_IMAGINE) {
+            OnlineMessageSource.Outgoing source = receipt.getSource();
+            ImageMessageService.processStorageImageMessage(task.getImageUrl(), source, String.valueOf(Bot.getInstances().get(0).getId()),null);
+        }
     }
 
     @Override

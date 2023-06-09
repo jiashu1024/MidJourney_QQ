@@ -30,6 +30,8 @@
 
 ​	[使用教程](docs/command.md)
 
+​	[常见问题](docs/issue.md)
+
 ## 鸣谢
 
 本项目的思路来源于[mirjourney-proxy](https://github.com/novicezk/midjourney-proxy)项目
@@ -41,6 +43,10 @@
 qq群：221445202
 qq：1130600015
 有问题欢迎提交issue
+
+
+
+
 
 
 
