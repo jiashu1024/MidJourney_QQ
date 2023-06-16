@@ -132,7 +132,9 @@ public class SchedulingTask {
         try {
             HttpResponse response = request.execute();
             if (response.getStatus() != 200) {
+                log.error("mid journey token错误或过期");
                 log.error("请求失败，状态码：{}", response.getStatus());
+                log.error("请求失败，响应：{}", response.body());
                 return;
             }
             String body = response.body();

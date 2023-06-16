@@ -273,20 +273,6 @@ public class Task {
     }
 
     /**
-     * 减少用户的fast或者relax次数
-     */
-//    public void decreaseCount() {
-//        if (this.user.getRole().equals(UserRole.ADMIN)) {
-//            return;
-//        }
-//        if (this.mode == ImagineMode.FAST) {
-//            this.user.setFastCount(this.user.getFastCount() - 1);
-//        } else {
-//            this.user.setRelaxCount(this.user.getRelaxCount() - 1);
-//        }
-//    }
-
-    /**
      * 用于任务完成后通知给用户
      */
     public void notifyUser() {
@@ -316,35 +302,19 @@ public class Task {
                 sendResultNeedStorage(this, contact, builder);
             } else if (action.equals(Action.UPSCALE)) {
                 sendResultNeedStorage(this, contact, builder);
-//                File file = null;
-//                try {
-//                    file = FileUtil.downloadFile(this.getImageUrl());
-//                } catch (Exception e) {
-//                    log.error("download file error ", e);
-//                    builder.append("图片下载失败").build();
-//                    contact.sendMessage(builder.build());
-//                    return;
-//                }
-//                log.info("begin to send image to {}", contact.getId());
-//                MessageReceipt<Contact> receipt = Contact.sendImage(contact, file);
-//                this.setSourceKey(Task.createSourceKey(receipt.getSource()));
-//                log.info("send image to {} success", contact.getId());
-//                builder.append("图片放大成功").build();
-//                contact.sendMessage(builder.build());
             } else if (action.equals(Action.VARIATION)) {
                 sendResultNeedStorage(this, contact, builder);
             }
 
             if (!user.getRole().equals(UserRole.ADMIN)) {
                 MessageChainBuilder balanceBuilder = new MessageChainBuilder().append(new QuoteReply(messageSource));
-                MessageChain balanceMessage = balanceBuilder.append("当前剩余次数：\n").append(String.valueOf(this.user.getFastCount())).append("次快速模式\n").append(String.valueOf(this.user.getRelaxCount())).append("次慢速模式\n").build();
+                MessageChain balanceMessage = balanceBuilder.append("本月剩余快速模式次数：").append(String.valueOf(this.user.getFastCount() - 1)).append("\n")
+                        .append("今天剩余relax模式次数：").append(String.valueOf(this.user.getRelaxCount() - 1)).build();
                 contact.sendMessage(balanceMessage);
             }
         } else if (status.equals(TaskStatus.RUNNING)) {
-            //  if (action.equals(Action.IMAGINE)) {
             MessageChain build = builder.append(new QuoteReply(messageSource)).append("正在生成图片，请稍后……").build();
             contact.sendMessage(build);
-            // }
         } else if (status.equals(TaskStatus.FAILED)) {
             builder.append("图片生成失败，原因：").append(this.getDescription()).build();
             contact.sendMessage(builder.build());
@@ -393,7 +363,7 @@ public class Task {
         Action action = task.getAction();
         if (action == Action.IMAGINE || action == Action.UPSCALE || action == Action.VARIATION || action == Action.PAD_IMAGINE) {
             OnlineMessageSource.Outgoing source = receipt.getSource();
-            ImageMessageService.processStorageImageMessage(task.getImageUrl(), source, String.valueOf(Bot.getInstances().get(0).getId()),null);
+            ImageMessageService.processStorageImageMessage(task.getImageUrl(), source, String.valueOf(Bot.getInstances().get(0).getId()), null);
         }
     }
 
