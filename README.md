@@ -1,8 +1,8 @@
-# Midjourney-QQ
+# Midjourney-QQ（停止维护）
 
 基于QQ机器人框架[mirai](https://github.com/mamoe/mirai)搭建的Midjourney机器人
 
-
+**由于没时间维护，该项目被我放弃，不再更新该项目，部署应该也无法使用了**
 
 ## 功能支持
 
